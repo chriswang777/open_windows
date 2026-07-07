@@ -1,0 +1,14 @@
+# 运行时配置（每台机器不同）
+switcher_config.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 临时图标
+switcher_*.ico
+
+# IDE
+.vscode/
+.idea/
