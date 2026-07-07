@@ -988,8 +988,8 @@ class TrayApp:
 
             # 最小间隔
             min_val = simpledialog.askinteger(
-                "Settings - Min Interval",
-                "Min interval (seconds)\nCurrent: %d\n\nShortest time between switches" % self.config.min_interval,
+                "设置 - 最小间隔",
+                "最小间隔（秒）\n当前: %d\n\n两次切换之间的最短时间" % self.config.min_interval,
                 initialvalue=self.config.min_interval,
                 minvalue=10, maxvalue=3600,
                 parent=dialog,
@@ -999,8 +999,8 @@ class TrayApp:
 
             # 最大间隔
             max_val = simpledialog.askinteger(
-                "Settings - Max Interval",
-                "Max interval (seconds)\nCurrent: %d\n\nLongest time between switches" % self.config.max_interval,
+                "设置 - 最大间隔",
+                "最大间隔（秒）\n当前: %d\n\n两次切换之间的最长时间" % self.config.max_interval,
                 initialvalue=self.config.max_interval,
                 minvalue=10, maxvalue=3600,
                 parent=dialog,
@@ -1016,8 +1016,8 @@ class TrayApp:
             # 空闲阈值
             idle_threshold = self.config.data.get("idle_threshold", 60)
             idle_val = simpledialog.askinteger(
-                "Settings - Idle Threshold",
-                "Idle threshold (seconds, 0=off)\nCurrent: %d\n\nSkip switch if user active within N seconds" % idle_threshold,
+                "设置 - 空闲阈值",
+                "空闲阈值（秒，0=关闭）\n当前: %d\n\n用户最近N秒内有操作则跳过切换" % idle_threshold,
                 initialvalue=idle_threshold,
                 minvalue=0, maxvalue=600,
                 parent=dialog,
@@ -1028,8 +1028,8 @@ class TrayApp:
             # 自动停止时间
             auto_stop = self.config.data.get("auto_stop_time", "18:00")
             stop_val = simpledialog.askstring(
-                "Settings - Auto Stop Time",
-                "Auto stop time (HH:MM, empty=off)\nCurrent: %s\n\nAuto stop switching at this time daily" % auto_stop,
+                "设置 - 自动停止时间",
+                "自动停止时间（HH:MM，空=关闭）\n当前: %s\n\n每天到达此时间自动停止切换" % auto_stop,
                 initialvalue=auto_stop,
                 parent=dialog,
             )
@@ -1042,8 +1042,8 @@ class TrayApp:
             # 键盘模拟开关
             input_sim = self.config.data.get("input_sim_enabled", True)
             sim_val = simpledialog.askstring(
-                "Settings - Input Simulation",
-                "Input simulation (yes/no)\nCurrent: %s\n\nSimulate PageDown/Down key after switch" % ("yes" if input_sim else "no"),
+                "设置 - 按键模拟",
+                "切换后模拟按键（是/否）\n当前: %s\n\n切换窗口后随机模拟翻页/滚动" % ("是" if input_sim else "否"),
                 initialvalue="yes" if input_sim else "no",
                 parent=dialog,
             )
@@ -1105,10 +1105,9 @@ def main():
         root = tk.Tk()
         root.withdraw()
         mb.showinfo(
-            "Window Switcher",
-            "Window Switcher is already running.\n\n"
-            "Check the system tray (bottom-right corner)\n"
-            "for the switcher icon."
+            "窗口切换器",
+            "窗口切换器已在运行中。\n\n"
+            "请查看系统托盘（右下角）的切换器图标。"
         )
         root.destroy()
         sys.exit(0)
