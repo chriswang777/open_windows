@@ -166,8 +166,32 @@ shell32 = ctypes.windll.shell32
 SW_RESTORE = 9
 SW_SHOW = 5
 VK_MENU = 0x12
+VK_NEXT = 0x22   # PageDown
+VK_DOWN = 0x28   # Down arrow
 KEYEVENTF_KEYUP = 0x0002
 DWMWA_CLOAKED = 14
+
+# --- SendInput 键盘模拟 ---
+INPUT_KEYBOARD = 1
+
+class KEYBDINPUT_S(Structure):
+    _fields_ = [
+        ("wVk", wintypes.WORD),
+        ("wScan", wintypes.WORD),
+        ("dwFlags", wintypes.DWORD),
+        ("time", wintypes.DWORD),
+        ("dwExtraInfo", ctypes.POINTER(ctypes.c_ulong)),
+    ]
+
+class INPUT_S(Structure):
+    _fields_ = [
+        ("type", wintypes.DWORD),
+        ("ki", KEYBDINPUT_S),
+        ("_pad", ctypes.c_byte * 16),  # 补齐到 40 bytes 对齐
+    ]
+
+user32.SendInput.argtypes = [wintypes.UINT, POINTER(INPUT_S), ctypes.c_int]
+user32.SendInput.restype = wintypes.UINT
 
 # --- 系统托盘 ---
 NIM_ADD = 0
@@ -421,6 +445,41 @@ class WindowManager:
         return idle_ms // 1000
 
     @staticmethod
+    def simulate_key_press(vk_code):
+        """使用 SendInput 模拟一次按键（按下 + 释放）。"""
+        inp_down = INPUT_S()
+        inp_down.type = INPUT_KEYBOARD
+        inp_down.ki.wVk = vk_code
+        inp_down.ki.dwFlags = 0
+
+        inp_up = INPUT_S()
+        inp_up.type = INPUT_KEYBOARD
+        inp_up.ki.wVk = vk_code
+        inp_up.ki.dwFlags = KEYEVENTF_KEYUP
+
+        inputs = (INPUT_S * 2)(inp_down, inp_up)
+        user32.SendInput(2, inputs, ctypes.sizeof(INPUT_S))
+
+    @staticmethod
+    def simulate_scroll_action():
+        """随机模拟一次滚动操作：PageDown 或连续 Down 方向键。"""
+        roll = random.random()
+        if roll < 0.6:
+            # 60%: 按一次 PageDown
+            WindowManager.simulate_key_press(VK_NEXT)
+            log.debug("Input: PageDown")
+        elif roll < 0.9:
+            # 30%: 连续按几次 Down
+            times = random.randint(2, 5)
+            for i in range(times):
+                WindowManager.simulate_key_press(VK_DOWN)
+                time.sleep(random.uniform(0.05, 0.15))
+            log.debug("Input: Down x%d", times)
+        else:
+            # 10%: 不操作
+            log.debug("Input: none")
+
+    @staticmethod
     def get_foreground_window():
         """获取当前前台窗口句柄。"""
         return user32.GetForegroundWindow()
@@ -463,6 +522,8 @@ class Config:
         "burst_chance": 0.15,      # 连切触发概率
         "idle_threshold": 60,      # 空闲阈值（秒），0=关闭
         "auto_stop_time": "18:00", # 每日自动停止时间，"":关闭
+        "input_sim_enabled": True,  # 键盘模拟开关
+        "input_sim_chance": 0.5,    # 每次切换后触发概率
     }
 
     def __init__(self, path=None):
@@ -662,6 +723,12 @@ class SwitcherEngine:
 
         log.debug("Switched to: %s", target_title)
         WindowManager.switch_to_window(target_hwnd)
+
+        # 键盘模拟：切过去后随机按几下，看起来像在浏览
+        if self.config.data.get("input_sim_enabled", True):
+            if random.random() < self.config.data.get("input_sim_chance", 0.5):
+                time.sleep(0.3)  # 等窗口完全前台化
+                WindowManager.simulate_scroll_action()
 
 
 # =============================================================================
@@ -971,6 +1038,17 @@ class TrayApp:
                 stop_val = stop_val.strip()
                 if stop_val == "" or (len(stop_val) == 5 and stop_val[2] == ":"):
                     self.config.data["auto_stop_time"] = stop_val
+
+            # 键盘模拟开关
+            input_sim = self.config.data.get("input_sim_enabled", True)
+            sim_val = simpledialog.askstring(
+                "Settings - Input Simulation",
+                "Input simulation (yes/no)\nCurrent: %s\n\nSimulate PageDown/Down key after switch" % ("yes" if input_sim else "no"),
+                initialvalue="yes" if input_sim else "no",
+                parent=dialog,
+            )
+            if sim_val is not None:
+                self.config.data["input_sim_enabled"] = sim_val.strip().lower().startswith("y")
 
             self.config.save()
             dialog.destroy()

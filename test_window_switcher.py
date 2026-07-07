@@ -245,3 +245,4 @@ class TestConfigEdgeCases(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+    input("\nPress Enter to close...")
