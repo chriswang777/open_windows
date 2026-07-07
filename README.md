@@ -25,13 +25,16 @@ A lightweight Windows utility that randomly switches between open application wi
 
 ## Quick Start
 
-### Method 1 — Double-click (recommended)
+### Method 1 — Pre-built EXE (easiest, no Python needed)
+Download **`WindowSwitcher-win64.exe`** from this repository and double-click to run. No Python installation required.
+
+### Method 2 — Double-click BAT (requires Python)
 Double-click **`启动.bat`** — the switcher will start silently and appear in the system tray.
 
-### Method 2 — Debug mode
+### Method 3 — Debug mode
 Double-click **`调试启动.bat`** — launches with a visible console to show errors and status messages.
 
-### Method 3 — Command line
+### Method 4 — Command line
 ```bash
 pythonw window_switcher.pyw
 ```
